@@ -4,42 +4,35 @@ DEFAULT_PROTOCOL = "http"
 
 #Unsupported functions
 UNSUPPORTED_CAMERA_FUNCTIONS = {
-    "AK-UB300": {"getCameraPower", "setCameraPower", "moveToPreset"}
+    "AK-UB300": {"getCameraPower", "setCameraPower", "moveToPreset", "registerPreset"}
 }
-
-# cameras
-CAMERAS = {
+SUPPORTED_CAMERAS = {
     "AW-HN40": {
-        "commandString": "{protocol}://{address}/cgi-bin/aw_ptz?cmd=%23{cmd}&res=1",
-        "commands": {
-            "getPowerState": {
-                "cmd": "O",
-                "responsePattern":"^p(\\d)$",
-                "dynamicResponse": False,
-                "response": {
-                    "default": "Off",
-                    'p0': "Standby",
-                    'p1': "On",
-                    'p3': "Transitioning"}
-                },
-            "setPowerState": {
-                "cmd": "O{value}",
-                "responsePattern":"^p(\\d)$",
-                "dynamicResponse": False,
-                "response": {
-                    "default": "Off",
-                    'p0': "Standby",
-                    'p1': "On"}
-                },
-            "moveToPreset": {
-                "cmd": "R{value}",
-                "responsePattern":"^s{value}$",
-                "dynamicResponse": True,
-                },
-            "registerPreset": {
-                "cmd": "M{value}"
-                }
-        },
+        "supported_functions": {
+            "panTiltPosition":{
+                "pan": {
+                    "min": 0,
+                    "max": 65535
+                    },
+                "tilt": {
+                    "min": 21845,
+                    "max": 36408
+                    }
+            }
+        }
+    },
+    "AW-HE120": {
+        "supported_functions": {
+            "panTiltPosition":{
+                "pan": {
+                    "min": 0,
+                    "max": 65535
+                    },
+                "tilt": {
+                    "min": 7281,
+                    "max": 36408
+                    }
+            }
+        }
     }
-
 }
