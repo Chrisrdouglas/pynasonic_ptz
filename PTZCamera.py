@@ -33,23 +33,27 @@ class PTZCamera:
     
     def _executeCommand(self, fnName, cmd, responses, response_pattern, default):
         response = default
-        try:
-            if not self._supportedFunction(fnName):
-                raise UnsupportedPTZOperation(self.camera, fnName)
-            r = get(cmd)
-            if r.status_code == 200:
-                match = re.match(response_pattern, r.text)
-                if match is None:
-                    raise CommandFailed(fnName, self.address)
-                response = responses.get(r.text, default)
-            else:
+        if not self._supportedFunction(fnName):
+            raise UnsupportedPTZOperation(self.camera, fnName)
+        r = get(cmd)
+        if r.status_code == 200:
+            match = re.match(response_pattern, r.text)
+            if match is None:
                 raise CommandFailed(fnName, self.address)
-        except UnsupportedPTZOperation as e:
-            print(e)
-        except Timeout as e:
-            print(e)
-        except CommandFailed as e:
-            print(e)
+            response = responses.get(r.text, default)
+        else:
+            raise CommandFailed(fnName, self.address)
+        return response
+    
+    def _executeQueryCommand(self, fnName, cmd, default):
+        response = default
+        if not self._supportedFunction(fnName):
+            raise UnsupportedPTZOperation(self.camera, fnName)
+        r = get(cmd)
+        if r.status_code == 200:
+            response = r.text
+        else:
+            raise CommandFailed(fnName, self.address)
         return response
 
     
@@ -138,7 +142,7 @@ class PTZCamera:
                     True if the position has been registered. otherwise false
         '''
         fnName = "registerPreset"
-        if not preset_index:
+        if preset_index is None:
             raise InvalidParameter(fnName, "preset_index", preset_index)
         preset_index = self._zeroPadPreset(preset_index)
         cmd = "M{value}".format(value=preset_index)
@@ -165,7 +169,7 @@ class PTZCamera:
             Returns:
                     True if the command executed successfully. otherwise false
         '''
-        fnName = "panTiltposition"
+        fnName = "setPanTiltposition"
 
         # catch out of bounds here
         if not (0 <= pan <= 65535) and not (0 <= tilt <= 65535):
@@ -196,6 +200,32 @@ class PTZCamera:
                                      responses=responses,
                                      response_pattern=response_pattern,
                                      default=default)
+    
+    def getPanTiltPosition(self):
+        '''
+        Moves the camera to the 
+
+            Parameters:
+                    pan (int): an int between 0 and 65535
+                    tilt (int): an int between 0 and 65535
+
+            Returns:
+                    a touple containing the pan and tilt values or None. The values will be ints between 0 and 65535
+        '''
+        fnName = "getPanTiltPosition"
+        cmd = "APC"
+        url_cmd = self.command_string.format(cmd=cmd)
+        response_pattern = "^aPC([0-9A-F]{4})([0-9A-F]{4})$"
+        default = None
+        response = self._executeQueryCommand(fnName=fnName, 
+                                             cmd=url_cmd,
+                                             default=default)
+        if response is None:
+            return default
+        match = re.match(response_pattern, response)
+        if match:
+            return (int(match.group(1), 16), int(match.group(2), 16))
+        return default
     
     def setZoom(self, zoom):
         '''
