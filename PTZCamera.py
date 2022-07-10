@@ -12,18 +12,6 @@ class PTZCamera:
         if self.camera not in constants.SUPPORTED_CAMERAS:
             raise UnsupportedCamera(self.camera)
         self.command_string = "{protocol}://{address}/cgi-bin/aw_ptz?cmd=%23{cmd}&res=1".format(protocol=protocol, address=self.address, cmd="{cmd}")
-        #self.commands = constants.CAMERAS[camera]['commands']
-        #self.responses = constants.CAMERAS[camera]['responses']
-    
-    def _formatURL(self,fnName, value=None):
-        if value is None:
-            return self.command_string.format(cmd=self.commands[fnName]["cmd"])
-        return self.command_string.format(cmd=self.commands[fnName]["cmd"].format(value=value))
-
-    '''def _formatResponse(self, fnName, value=None):
-        if not self.commands[fnName]['dynamicResponse']:
-            return self.commands[fnName]['response_pattern']
-        return self.commands[fnName]['response_pattern'].format(value=value)'''
 
     def _zeroPad(self, value, desired_length):
         pad_length = desired_length - len(value)
