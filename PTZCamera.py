@@ -200,7 +200,36 @@ class PTZCamera:
                                      responses=responses,
                                      response_pattern=response_pattern,
                                      default=default)
-    
+
+    def setPanTiltRelativePosition(self, pan, tilt):
+        fnName = "setPanTiltposition"
+        if not (0 <= pan <= 65535) and not (0 <= tilt <= 65535):
+            return False
+
+        pan_hex = hex(round(pan))[2:]
+        tilt_hex = hex(round(tilt))[2:]
+
+        if len(pan_hex) < 4:
+            pan_hex = self._zeroPad(value=pan_hex, desired_length=4)
+        if len(tilt_hex) < 4:
+            tilt_hex = self._zeroPad(value=tilt_hex, desired_length=4)
+
+        pan_hex = pan_hex.upper()
+        tilt_hex = tilt_hex.upper()
+
+        cmd = "RPC{pan}{tilt}".format(pan=pan_hex,tilt=tilt_hex)
+        url_cmd = self.command_string.format(cmd=cmd)
+        response_pattern = "^rPC{pan}{tilt}$".format(pan=pan_hex,tilt=tilt_hex)
+        responses = {
+            "rPC{pan}{tilt}".format(pan=pan_hex,tilt=tilt_hex): True
+        }
+        default = False
+        return self._executeCommand(fnName=fnName, 
+                                     cmd=url_cmd, 
+                                     responses=responses,
+                                     response_pattern=response_pattern,
+                                     default=default)
+
     def getPanTiltPosition(self):
         '''
         Moves the camera to the 
