@@ -201,7 +201,7 @@ class PTZCamera:
         # catch out of bounds here
         if not (self.panLower <= pan < self.panUpper):
             raise InvalidParameter(fnName, 'pan', pan)
-        if not (self.tiltUpper <= tilt < self.tiltUpper):
+        if not (self.tiltLower <= tilt < self.tiltUpper):
             raise InvalidParameter(fnName, 'tilt', tilt)
 
         pan_hex = hex(round(pan))[2:]
