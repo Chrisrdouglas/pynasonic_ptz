@@ -61,7 +61,6 @@ class PTZCamera:
     def delay(self):
         return self.delay
 
-
     @property
     def powerStates(self):
         return ('On', 'Standby', 'Transitioning')
