@@ -26,4 +26,4 @@ class InvalidCamera(BaseException):
         super().__init__()
 
     def __str__(self):
-        return "{0} is not a valid camera. To see a list of valid cameras please check cameras.py".format(self.value)
+        return "{0} is not a valid camera or is untested. To see a list of valid cameras please check cameras.py".format(self.value)

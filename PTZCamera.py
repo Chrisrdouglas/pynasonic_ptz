@@ -1,8 +1,8 @@
 from requests import get
 import re
 
-from PTZCameraExceptions import CommandFailed, InvalidParameter
-from cameras import CAMERAS
+from .PTZCameraExceptions import CommandFailed, InvalidParameter, InvalidCamera
+from .cameras import CAMERAS
 
 class PTZCamera:
     def __init__(self, camera="AW-HN40", address="192.168.0.10", protocol="http", debug=False):
@@ -34,8 +34,10 @@ class PTZCamera:
             cam_config = CAMERAS["default"]
             if debug:
                 print("WARNING: CAMERA NOT FOUND IN cameras.py.")
+            else:
+                raise InvalidCamera(self.camera)
 
-        tilt = cam_config['tilt']
+        tilt = cam_config['tilt']['angles']
         self.tiltAngleUpper = tilt[1]
         self.tiltAngleLower = tilt[0]
 
@@ -43,11 +45,11 @@ class PTZCamera:
         self.presetUpper = 100
         self.presetLower = 0
 
-        pan = cam_config['pan']
+        pan = cam_config['pan']['angles']
         self.panAngleUpper = pan[1]
         self.panAngleLower = pan[0]
 
-        self.delay = cam_config['delay']
+        self._delay = cam_config['delay']
 
     @property
     def tiltAngleRange(self):
@@ -59,7 +61,7 @@ class PTZCamera:
 
     @property
     def delay(self):
-        return self.delay
+        return self._delay
 
     @property
     def powerStates(self):
