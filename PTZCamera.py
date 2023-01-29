@@ -2,9 +2,10 @@ from requests import get
 import re
 
 from PTZCameraExceptions import CommandFailed, InvalidParameter
+from cameras import CAMERAS
 
 class PTZCamera:
-    def __init__(self, camera="AW-HN40", address="192.168.0.10", protocol="http"):
+    def __init__(self, camera="AW-HN40", address="192.168.0.10", protocol="http", debug=False):
         '''
             camera: name of the camera model
             address: IP or hostname of the camera
@@ -13,6 +14,7 @@ class PTZCamera:
         self.camera = camera
         self.address = address
         self.command_string = "{protocol}://{address}/cgi-bin/aw_ptz?cmd=%23{cmd}&res=1".format(protocol=protocol, address=self.address, cmd="{cmd}")
+        self.debug = debug
 
         # Zoom bounds
         self.zoomUpper = 4096
@@ -26,9 +28,39 @@ class PTZCamera:
         self.tiltUpper = 65536
         self.tiltLower = 0
 
+        try:
+            cam_config = CAMERAS[self.camera]
+        except KeyError:
+            cam_config = CAMERAS["default"]
+            if debug:
+                print("WARNING: CAMERA NOT FOUND IN cameras.py.")
+
+        tilt = cam_config['tilt']
+        self.tiltAngleUpper = tilt[1]
+        self.tiltAngleLower = tilt[0]
+
         # Preset bounds
         self.presetUpper = 100
         self.presetLower = 0
+
+        pan = cam_config['pan']
+        self.panAngleUpper = pan[1]
+        self.panAngleLower = pan[0]
+
+        self.delay = cam_config['delay']
+
+    @property
+    def tiltAngleRange(self):
+        return (self.tiltAngleLower, self.tiltAngleUpper)
+
+    @property
+    def panAngleRange(self):
+        return (self.panAngleLower, self.panAngleUpper)
+
+    @property
+    def delay(self):
+        return self.delay
+
 
     @property
     def powerStates(self):

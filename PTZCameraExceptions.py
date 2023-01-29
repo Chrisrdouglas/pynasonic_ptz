@@ -19,3 +19,11 @@ class InvalidParameter(BaseException):
         return "{0} does not accept {1} for {2}".format(self.command,
                                                         self.value,
                                                         self.param_name)
+
+class InvalidCamera(BaseException):
+    def __init__(self, value):
+        self.value = value
+        super().__init__()
+
+    def __str__(self):
+        return "{0} is not a valid camera. To see a list of valid cameras please check cameras.py".format(self.value)
