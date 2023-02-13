@@ -16,18 +16,6 @@ class PTZCamera:
         self.command_string = "{protocol}://{address}/cgi-bin/aw_ptz?cmd=%23{cmd}&res=1".format(protocol=protocol, address=self.address, cmd="{cmd}")
         self.debug = debug
 
-        # Zoom bounds
-        self.zoomUpper = 4096
-        self.zoomLower = 1365
-
-        # Pan bounds
-        self.panUpper = 65536
-        self.panLower = 0
-
-        # Tilt bounds
-        self.tiltUpper = 65536
-        self.tiltLower = 0
-
         try:
             cam_config = CAMERAS[self.camera]
         except KeyError:
@@ -37,17 +25,29 @@ class PTZCamera:
             else:
                 raise InvalidCamera(self.camera)
 
+        # Zoom bounds
+        self.zoomUpper = 4096
+        self.zoomLower = 1365
+
+        # Tilt bounds
         tilt = cam_config['tilt']['angles']
         self.tiltAngleUpper = tilt[1]
         self.tiltAngleLower = tilt[0]
+        tilt = cam_config['tilt']['bounds']
+        self.tiltUpper = tilt[1]
+        self.tiltLower = tilt[0]
 
         # Preset bounds
         self.presetUpper = 100
         self.presetLower = 0
 
+        # Pan bounds
         pan = cam_config['pan']['angles']
         self.panAngleUpper = pan[1]
         self.panAngleLower = pan[0]
+        pan = cam_config['pan']['bounds']
+        self.panUpper = pan[1]
+        self.panLower = pan[0]
 
         self._delay = cam_config['delay']
 
