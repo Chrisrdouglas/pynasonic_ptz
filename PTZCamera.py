@@ -217,13 +217,15 @@ class PTZCamera:
                                      response_pattern=response_pattern,
                                      default=default)
 
-    def setPanTiltPosition(self, pan, tilt):
+    def setPanTiltPosition(self, pan: int, tilt: int, speed: int = 29, select: int = 2):
         '''
         Moves the camera to the 
 
             Parameters:
                     pan (int): an int between 0 and 65535
                     tilt (int): an int between 0 and 65535
+                    speed (int): an int between 0 and 30 inclusive
+                    select (int): 0 for slow, 2 for fast
             Returns:
                     True if the command executed successfully. otherwise false
             Raises:
@@ -236,9 +238,14 @@ class PTZCamera:
             raise InvalidParameter(fnName, 'pan', pan)
         if not (self.tiltLower <= tilt < self.tiltUpper):
             raise InvalidParameter(fnName, 'tilt', tilt)
+        if not (0 <= speed < 30):
+            raise InvalidParameter(fnName, 'speed', speed)
+        if select not in {0, 2}:
+            raise InvalidParameter(fnName, 'select', select)
 
         pan_hex = hex(round(pan))[2:]
         tilt_hex = hex(round(tilt))[2:]
+        speed_hex = hex(speed)[2:]
 
         if len(pan_hex) < 4:
             pan_hex = self._zeroPad(value=pan_hex, desired_length=4)
@@ -247,12 +254,14 @@ class PTZCamera:
 
         pan_hex = pan_hex.upper()
         tilt_hex = tilt_hex.upper()
+        speed_hex = speed_hex.upper()
 
-        cmd = "APC{pan}{tilt}".format(pan=pan_hex,tilt=tilt_hex)
+        cmd = f"APS{pan_hex}{tilt_hex}{speed_hex}{select}"
         url_cmd = self.command_string.format(cmd=cmd)
-        response_pattern = "^aPC{pan}{tilt}$".format(pan=pan_hex,tilt=tilt_hex)
+        response = f"aPS{pan_hex}{tilt_hex}{speed_hex}{select}"
+        response_pattern = f"^{response}$"
         responses = {
-            "aPC{pan}{tilt}".format(pan=pan_hex,tilt=tilt_hex): True
+            response: True
         }
         default = False
         return self._executeCommand(fnName=fnName, 
