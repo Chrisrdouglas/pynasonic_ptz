@@ -1,5 +1,6 @@
 from requests import get
 import re
+from typing import Union
 
 from .PTZCameraExceptions import CommandFailed, InvalidParameter, InvalidCamera
 from .cameras import CAMERAS
@@ -36,6 +37,9 @@ class PTZCamera:
         tilt = cam_config['tilt']['bounds']
         self.tiltUpper = tilt[1]
         self.tiltLower = tilt[0]
+        self.tiltSpeed = cam_config['tilt']['max_speed']
+        self.tiltSpeedLower = cam_config['tilt']['speed_bounds'][0]
+        self.tiltSpeedUpper = cam_config['tilt']['speed_bounds'][1]
 
         # Preset bounds
         self.presetUpper = 100
@@ -48,6 +52,9 @@ class PTZCamera:
         pan = cam_config['pan']['bounds']
         self.panUpper = pan[1]
         self.panLower = pan[0]
+        self.panSpeed = cam_config['pan']['max_speed']
+        self.panSpeedLower = cam_config['pan']['speed_bounds'][0]
+        self.panSpeedUpper = cam_config['pan']['speed_bounds'][1]
 
         self._delay = cam_config['delay']
 
@@ -74,10 +81,18 @@ class PTZCamera:
     @property
     def panBounds(self):
         return (self.panLower, self.panUpper - 1)
+    
+    @property
+    def panSpeedBounds(self):
+        return (self.panSpeedLower, self.panSpeedUpper - 1)
 
     @property
     def tiltBounds(self):
         return (self.tiltLower, self.tiltUpper - 1)
+    
+    @property
+    def tiltSpeedBounds(self):
+        return (self.tiltSpeedLower, self.tiltSpeedUpper - 1)
 
     @property
     def zoomBounds(self):
@@ -95,6 +110,8 @@ class PTZCamera:
     def _executeCommand(self, fnName, cmd, responses, response_pattern, default):
         response = default
         r = get(cmd)
+        print(r.text)
+        print(r.status_code)
         if r.status_code == 200:
             match = re.match(response_pattern, r.text)
             if match is None:
@@ -129,6 +146,48 @@ class PTZCamera:
                     'p1': "On",
                     'p3': "Transitioning"
                     }
+        return self._executeCommand(fnName=fnName, 
+                                     cmd=url_cmd, 
+                                     responses=responses,
+                                     response_pattern=response_pattern,
+                                     default=default)
+
+    def setPanTiltSpeed(self, pan: int, tilt: int):
+        '''
+        sets the current speed at which the camera is moving
+            Parameters:
+                    pan (int): desired pan speed
+                    tilt (int): desired tilt speed
+            Returns:
+                    A string saying what power state it will be in. On or Standby
+        '''
+        fnName = "setPanTiltSpeed"
+                # catch out of bounds here
+        if not (-self.panSpeedLower <= pan < self.panSpeedUpper):
+            raise InvalidParameter(fnName, 'pan', pan)
+        if not (-self.tiltSpeedLower <= tilt < self.tiltSpeedUpper):
+            raise InvalidParameter(fnName, 'tilt', tilt)
+        
+        #normalizedPan = ((pan - (-self.panSpeed)) / (self.panSpeed - (-self.panSpeed))) * 99
+        #normalizedTilt = (tilt - (-self.tiltSpeed)) / (self.tiltSpeed - (-self.tiltSpeed))
+
+        pan = str(pan)
+        tilt = str(tilt)
+
+        if len(pan) < 2:
+            pan = self._zeroPad(value=pan, desired_length=2)
+        if len(tilt) < 2:
+            tilt = self._zeroPad(value=tilt, desired_length=2)
+
+        cmd = f"PTS{pan}{tilt}"
+        url_cmd = self.command_string.format(cmd=cmd)
+        print(url_cmd)
+        response = f"pTS{pan}{tilt}"
+        response_pattern = f"^{response}$"
+        responses = {
+            response: True
+        }
+        default = False
         return self._executeCommand(fnName=fnName, 
                                      cmd=url_cmd, 
                                      responses=responses,
@@ -251,6 +310,8 @@ class PTZCamera:
             pan_hex = self._zeroPad(value=pan_hex, desired_length=4)
         if len(tilt_hex) < 4:
             tilt_hex = self._zeroPad(value=tilt_hex, desired_length=4)
+        if len(speed_hex) < 2:
+            speed_hex = self._zeroPad(value=speed_hex, desired_length=2)
 
         pan_hex = pan_hex.upper()
         tilt_hex = tilt_hex.upper()
