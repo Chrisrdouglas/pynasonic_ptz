@@ -110,8 +110,6 @@ class PTZCamera:
     def _executeCommand(self, fnName, cmd, responses, response_pattern, default):
         response = default
         r = get(cmd)
-        print(r.text)
-        print(r.status_code)
         if r.status_code == 200:
             match = re.match(response_pattern, r.text)
             if match is None:
@@ -181,7 +179,6 @@ class PTZCamera:
 
         cmd = f"PTS{pan}{tilt}"
         url_cmd = self.command_string.format(cmd=cmd)
-        print(url_cmd)
         response = f"pTS{pan}{tilt}"
         response_pattern = f"^{response}$"
         responses = {
