@@ -467,6 +467,36 @@ class PTZCamera:
         if match:
             return 'On' if int(match.group(1)) == 1 else "Off"
         return default
+    
+     def setTally(self, value):
+        '''
+        sets Tally
+
+            Parameters:
+                 value (bool): a bool where True means turn on and False means turn off
+            Returns:
+                    True if the command executed successfully. Otherwise False
+            Raises:
+                    InvalidParameter
+        '''
+        fnName = "setTally"
+        if type(value) is not bool:
+            raise InvalidParameter(fnName, 'value', value)
+        cmd = "DA{setting}".format(setting=1 if value else 0)
+        url_cmd = self.command_string.format(cmd=cmd)
+        response_pattern = "^dA([0-1]{1})$"
+        responses = {
+            "dA0": True if not value else False,
+            "dA1": True if value else False
+        }
+        default = False
+        return self._executeCommand(fnName=fnName, 
+                                        cmd=url_cmd,
+                                        responses=responses,
+                                        response_pattern=response_pattern,
+                                        default=default)
+
+    
 
 '''    def getFocus(self):
         pass
