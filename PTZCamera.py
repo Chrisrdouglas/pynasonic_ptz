@@ -1,9 +1,8 @@
 from requests import get
 import re
-from typing import Union
 
-from .PTZCameraExceptions import CommandFailed, InvalidParameter, InvalidCamera
-from .cameras import CAMERAS
+from PTZCameraExceptions import CommandFailed, InvalidParameter, InvalidCamera
+from cameras import CAMERAS
 
 class PTZCamera:
     def __init__(self, camera="AW-HN40", address="192.168.0.10", protocol="http", debug=False):
@@ -165,9 +164,6 @@ class PTZCamera:
             raise InvalidParameter(fnName, 'pan', pan)
         if not (-self.tiltSpeedLower <= tilt < self.tiltSpeedUpper):
             raise InvalidParameter(fnName, 'tilt', tilt)
-        
-        #normalizedPan = ((pan - (-self.panSpeed)) / (self.panSpeed - (-self.panSpeed))) * 99
-        #normalizedTilt = (tilt - (-self.tiltSpeed)) / (self.tiltSpeed - (-self.tiltSpeed))
 
         pan = str(pan)
         tilt = str(tilt)
@@ -468,7 +464,7 @@ class PTZCamera:
             return 'On' if int(match.group(1)) == 1 else "Off"
         return default
     
-     def setTally(self, value):
+    def setTally(self, value):
         '''
         sets Tally
 
