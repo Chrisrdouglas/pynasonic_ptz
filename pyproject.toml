@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pynasonic-ptz"
+version = "0.1.0"
+description = "Control Panasonic PTZ cameras over their HTTP interface"
+readme = "README.md"
+authors = [{ name = "Chris Douglas" }]
+requires-python = ">=3.9"
+dependencies = ["requests"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.urls]
+Source = "https://github.com/Chrisrdouglas/pynasonic_ptz"
+
+[tool.setuptools]
+packages = ["pynasonic_ptz"]

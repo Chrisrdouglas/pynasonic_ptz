@@ -1,32 +1,41 @@
+"""Work out which preset a camera is sitting on by visiting each one and comparing positions."""
 from time import sleep
 
-from PTZCamera import PTZCamera
+from pynasonic_ptz import PTZCamera
 
-def run():
-    camera_ip = '192.168.86.218'
-    ptz = PTZCamera(address=camera_ip, debug=True)
+CAMERA_IP = "192.168.86.218"
+PRESETS_TO_CHECK = range(5)
 
-    cur_zoom = ptz.getZoom()
-    cur_pan, cur_tilt = ptz.getPanTiltPosition()
-    print(f'Current Position - {(cur_zoom, cur_pan, cur_tilt)}')
 
-    # create mapping for preset
-    preset_mapping = {}
-    #for preset_num in range(ptz.presetLower, ptz.presetUpper):
-    for preset_num in range(ptz.presetLower, 5):
-        ptz.moveToPreset(preset_num)
+def read_position(cam):
+    return (cam.get_zoom(), *cam.get_pan_tilt_position())
+
+
+def main():
+    cam = PTZCamera(CAMERA_IP)
+
+    current = read_position(cam)
+    print(f"Current position: {current}")
+
+    presets_by_position = {}
+    for preset in PRESETS_TO_CHECK:
+        cam.move_to_preset(preset)
         sleep(3)
-        position = (ptz.getZoom(), *ptz.getPanTiltPosition())
-        print(f'position {preset_num + 1} - {position}')
-        preset_mapping[position] = preset_num
+        position = read_position(cam)
+        print(f"Preset {preset + 1}: {position}")
+        presets_by_position[position] = preset
 
-    ptz.setZoom(cur_zoom)
-    ptz.setPanTiltPosition(cur_pan, cur_tilt)
+    zoom, pan, tilt = current
+    cam.set_zoom(zoom)
+    cam.set_pan_tilt_position(pan, tilt)
 
-    cur_preset = preset_mapping.get((cur_zoom, cur_pan, cur_tilt), "UNKNOWN")
-    print(f"Camera is currently on preset {cur_preset + 1}")  # starts counting at zero
+    preset = presets_by_position.get(current)
+    if preset is None:
+        print("Camera is not on any of the checked presets")
+    else:
+        # Presets are numbered from 0 here but from 1 on the camera.
+        print(f"Camera is on preset {preset + 1}")
 
-if __name__ == '__main__':
-    run()
 
-
+if __name__ == "__main__":
+    main()
